@@ -37,7 +37,7 @@ def ea_params():
 
 @fixture
 def mutation_rate():
-    return 0.05
+    return 0.1
 
 
 @fixture

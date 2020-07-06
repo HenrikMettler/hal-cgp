@@ -3,7 +3,7 @@ import pytest
 
 import cgp
 from cgp.genome import ID_INPUT_NODE, ID_OUTPUT_NODE, ID_NON_CODING_GENE
-
+from pytest import fixture
 
 def test_check_dna_consistency():
     params = {"n_inputs": 2, "n_outputs": 1, "n_columns": 1, "n_rows": 1, "levels_back": 1}
@@ -346,89 +346,109 @@ def test_is_gene_in_output_region(rng_seed):
     assert not genome._is_gene_in_output_region(11)
 
 
-def test_mutate_hidden_region(rng_seed):
+def test_mutation_rate(rng_seed, mutation_rate):
+    n_input = 1
+    n_output = 1
+    n_column = 4
+    n_row = 3
+    genome = cgp.Genome(n_input, n_output, n_column, n_row, None, (cgp.Add, cgp.Sub))
     rng = np.random.RandomState(rng_seed)
-    genome = cgp.Genome(1, 1, 3, 1, None, (cgp.Add, cgp.ConstantFloat))
-    dna = [
-        ID_INPUT_NODE,
-        ID_NON_CODING_GENE,
-        ID_NON_CODING_GENE,
-        1,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        2,
-        ID_OUTPUT_NODE,
-        3,
-        ID_NON_CODING_GENE,
-    ]
-    genome.dna = list(dna)
-    active_regions = cgp.CartesianGraph(genome).determine_active_regions()
-
-    # mutating any gene in inactive region returns True
-    assert genome._mutate_hidden_region(list(dna), 3, active_regions, rng) is True
-    assert genome._mutate_hidden_region(list(dna), 4, active_regions, rng) is True
-    assert genome._mutate_hidden_region(list(dna), 5, active_regions, rng) is True
-
-    # mutating function gene in active region returns False
-    assert genome._mutate_hidden_region(list(dna), 6, active_regions, rng) is False
-    # mutating inactive genes in active region returns True
-    assert genome._mutate_hidden_region(list(dna), 7, active_regions, rng) is True
-    assert genome._mutate_hidden_region(list(dna), 8, active_regions, rng) is True
-
-    # mutating any gene in active region without silent genes returns False
-    assert genome._mutate_hidden_region(list(dna), 9, active_regions, rng) is False
-    assert genome._mutate_hidden_region(list(dna), 10, active_regions, rng) is False
-    assert genome._mutate_hidden_region(list(dna), 11, active_regions, rng) is False
-
-
-def test_mutate_output_region(rng_seed):
-    rng = np.random.RandomState(rng_seed)
-    genome = cgp.Genome(1, 1, 2, 1, None, (cgp.Add,))
-    dna = [
-        ID_INPUT_NODE,
-        ID_NON_CODING_GENE,
-        ID_NON_CODING_GENE,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        ID_OUTPUT_NODE,
-        2,
-        ID_NON_CODING_GENE,
-    ]
-
-    assert genome._mutate_output_region(list(dna), 9, rng) is True
-    assert genome._mutate_output_region(list(dna), 10, rng) is False
-    assert genome._mutate_output_region(list(dna), 11, rng) is True
-
-
-@pytest.mark.parametrize("mutation_rate", [0.02, 0.05, 0.2])
-def test_correct_number_of_mutations(mutation_rate, rng_seed):
-
-    n_inputs = 2
-    n_outputs = 1
-    n_columns = 10
-    n_rows = 2
-    levels_back = 5
-    primitives = (cgp.Add, cgp.Sub, cgp.Mul, cgp.Div, cgp.ConstantFloat)
-
-    rng = np.random.RandomState(rng_seed)
-    genome = cgp.Genome(n_inputs, n_outputs, n_columns, n_rows, levels_back, primitives)
     genome.randomize(rng)
 
-    n_mutations = 0
-    genome_new = genome.clone()
-    genome_new.mutate(mutation_rate, rng)
-    for (gene_0, gene_1) in zip(genome.dna, genome_new.dna):
-        if gene_0 != gene_1:
-            n_mutations += 1
+    def count_n_immutable_genes(n_input, n_output, n_row):
+        counter = n_input * 3  # 3 is the arity
+        counter += n_output * 2  # 2 of 3 output genes can not be mutated
+        if n_input == 1:
+            counter += (
+                n_row * 2
+            )  # input gene addresses in the first hidden layer can't be mutated in that case
+        return counter
 
-    n_mutations_expected = int(mutation_rate * len(genome.dna))
-    assert n_mutations == n_mutations_expected
+    def count_mutations(prev_dna, new_dna):
+        counter = 0
+        for idx in range(len(prev_dna)):
+            if prev_dna[idx] != new_dna[idx]:
+                counter += 1
+        return counter
+
+    acceptable_error_interval = 0.05 # Todo: get comment for this value from Jakob and Max
+    n = 1000
+    n_immutable_genes = count_n_immutable_genes(n_input, n_output, n_row)
+    n_mutations_expected = n * mutation_rate * (len(genome.dna) - n_immutable_genes)
+    print(len(genome.dna), n_immutable_genes)
+    n_mutations = 0
+    for _ in range(n):
+        temp_dna = genome.dna
+        genome.mutate(mutation_rate, rng)
+        current_n_mutations = count_mutations(temp_dna, genome.dna)
+        n_mutations += current_n_mutations
+    print(n_mutations, n_mutations_expected, len(genome.dna))
+    assert abs(n_mutations_expected - n_mutations) < (
+        n_mutations_expected * acceptable_error_interval
+    )
+
+
+def test_only_silent_mutations(genome_params, rng_seed):
+    genome = cgp.Genome(**genome_params)
+    rng = np.random.RandomState(rng_seed)
+    genome.randomize(rng)
+
+    only_silent_mutations_0 = genome.mutate(mutation_rate=0, rng=rng)
+    assert only_silent_mutations_0
+
+    only_silent_mutations_1 = genome.mutate(mutation_rate=1, rng=rng)
+    assert not only_silent_mutations_1
+
+
+# Overwrite global genome_params() from conftest, since tests below strongly depend on these variable values
+@fixture
+def genome_params():
+    return {
+        "n_inputs": 2,
+        "n_outputs": 1,
+        "n_columns": 3,
+        "n_rows": 3,
+        "levels_back": 2,
+        "primitives": (cgp.Add, cgp.Sub, cgp.ConstantFloat),
+    }
+
+
+def test_permissible_values_hidden(genome_params, rng_seed):
+    # Todo: This function is strongly dependent on genome_params -> make remark about this somewhere useful...
+    genome = cgp.Genome(**genome_params)
+
+    # test function gene
+    gene_idx = 6 # function gene of first hidden gene
+    gene = 0 #
+    region_idx = 1000 # can be any number, since not touched for function gene
+    permissible_function_gene_values = genome._determine_permissible_values_hidden(gene_idx, gene, region_idx)
+
+    # test input gene
+    gene_idx = 16 # first input gene in second hidden layer
+    gene = 0
+    region_idx = 5
+    permissible_hidden_input_gene_values = genome._determine_permissible_values_hidden(gene_idx, gene, region_idx)
+
+    assert permissible_function_gene_values == [1,2] # function idx 1,2 (cgp.Sub, cgp.ConstantFloat)
+    assert permissible_hidden_input_gene_values == [1,2,3,4] # gene indices of input, 1st hidden layer
+
+
+def test_permissible_values_output(genome_params, rng_seed):
+    genome = cgp.Genome(**genome_params)
+
+    gene_idx_0 = 33
+    gene_idx_1 = 34
+    gene_idx_2 = 35
+
+    gene = 5 # possible input genes: 5-10
+
+    permissible_values_0 = genome._determine_permissible_values_output(gene_idx_0, gene)
+    permissible_values_1 = genome._determine_permissible_values_output(gene_idx_1, gene)
+    permissible_values_2 = genome._determine_permissible_values_output(gene_idx_2, gene)
+    print(permissible_values_1)
+    assert permissible_values_0 == []
+    assert permissible_values_1 == [0,1 ,2, 3, 4, 6, 7, 8, 9, 10]
+    assert permissible_values_2 == []
+
+
+

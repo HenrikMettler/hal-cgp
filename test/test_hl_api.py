@@ -65,6 +65,8 @@ def test_parallel_population(population_params, genome_params, ea_params):
         fitness_per_n_processes.append(
             _test_population(population_params, genome_params, ea_params)
         )
+
+    assert fitness_per_n_processes[1] == pytest.approx(fitness_per_n_processes[2])
     assert fitness_per_n_processes[0] == pytest.approx(fitness_per_n_processes[1])
     assert fitness_per_n_processes[0] == pytest.approx(fitness_per_n_processes[2])
 
