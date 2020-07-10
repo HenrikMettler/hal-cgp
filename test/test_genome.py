@@ -383,7 +383,7 @@ def test_mutation_rate(rng_seed, mutation_rate):
         genome.mutate(mutation_rate, rng)
         current_n_mutations = count_mutations(temp_dna, genome.dna)
         n_mutations += current_n_mutations
-    print(n_mutations, n_mutations_expected, len(genome.dna))
+
     assert abs(n_mutations_expected - n_mutations) < (
         n_mutations_expected * acceptable_error_interval
     )
@@ -458,7 +458,7 @@ def test_permissible_values_output(genome_params, rng_seed):
     permissible_values_0 = genome._determine_permissible_values_output(gene_idx_0, gene)
     permissible_values_1 = genome._determine_permissible_values_output(gene_idx_1, gene)
     permissible_values_2 = genome._determine_permissible_values_output(gene_idx_2, gene)
-    print(permissible_values_1)
+
     assert permissible_values_0 == []
     assert permissible_values_1 == [0, 1, 2, 3, 4, 6, 7, 8, 9, 10]
     assert permissible_values_2 == []
