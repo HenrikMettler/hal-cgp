@@ -379,7 +379,7 @@ class Genome:
             region_idx = gene_idx // self._length_per_region
 
             permissible_values = self._determine_permissible_values(gene_idx, gene, region_idx)
-            if not len(permissible_values) == 0:
+            if len(permissible_values) > 0:
 
                 dna[gene_idx] = rng.choice(permissible_values)
                 silent = region_idx not in active_regions
@@ -399,9 +399,11 @@ class Genome:
         elif self._is_hidden_region(region_idx):
             return self._determine_permissible_values_hidden(gene_idx, gene, region_idx)
 
-        else:
-            assert self._is_output_region(region_idx)
+        elif self._is_output_region(region_idx):
             return self._determine_permissible_values_output(gene_idx, gene)
+
+        else:
+            assert False  # should never be reached
 
     def _determine_permissible_values_hidden(
         self, gene_idx: int, gene: int, region_idx: int
@@ -409,9 +411,11 @@ class Genome:
         if self._is_function_gene(gene_idx):
             permissible_values = list(np.arange(len(self._primitives._primitives)))
 
-        else:
-            assert self._is_hidden_input_gene(gene_idx, region_idx)
+        elif self._is_hidden_input_gene(gene_idx, region_idx):
             permissible_values = self._permissible_inputs(region_idx)
+
+        else:
+            assert False
         permissible_values.remove(gene)
         return permissible_values
 
