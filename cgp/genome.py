@@ -357,7 +357,7 @@ class Genome:
         mutation_rate : float
             Proportion of genes to be mutated, between 0 and 1.
         rng : numpy.random.RandomState
-            Random number generator instance to use for choosing the mutated values.
+            Random number generator instance to use for mutation.
 
         Returns
         ----------
@@ -368,20 +368,23 @@ class Genome:
         graph = CartesianGraph(self)
         active_regions = graph.determine_active_regions()
         dna = list(self._dna)
-        dna_array = np.array(dna)
         only_silent_mutations = True
 
-        selected_gene_indices = np.nonzero(np.random.rand(len(dna)) < mutation_rate)
+        selected_gene_indices = np.nonzero(np.random.rand(len(dna)) < mutation_rate)[0]
 
-        for (gene_idx, gene) in zip(selected_gene_indices[0], dna_array[selected_gene_indices]):
+        for (allele_idx, allele) in zip(
+            selected_gene_indices, np.array(dna)[selected_gene_indices]
+        ):
 
             silent = True
-            region_idx = gene_idx // self._length_per_region
+            region_idx = allele_idx // self._length_per_region
 
-            permissible_values = self._determine_permissible_values(gene_idx, gene, region_idx)
+            permissible_values = self._determine_alternative_permissible_values(
+                allele_idx, allele, region_idx
+            )
             if len(permissible_values) > 0:
 
-                dna[gene_idx] = rng.choice(permissible_values)
+                dna[allele_idx] = rng.choice(permissible_values)
                 silent = region_idx not in active_regions
 
             only_silent_mutations = only_silent_mutations and silent
@@ -389,23 +392,23 @@ class Genome:
         self.dna = dna
         return only_silent_mutations
 
-    def _determine_permissible_values(
+    def _determine_alternative_permissible_values(
         self, gene_idx: int, gene: int, region_idx: int
     ) -> List[int]:
 
         if self._is_input_region(region_idx):
-            return []  # input region have no other permissible values
+            return []  # genes in input regions have no alternative permissible values
 
         elif self._is_hidden_region(region_idx):
-            return self._determine_permissible_values_hidden(gene_idx, gene, region_idx)
+            return self._determine_permissible_values_hidden_gene(gene_idx, gene, region_idx)
 
         elif self._is_output_region(region_idx):
-            return self._determine_permissible_values_output(gene_idx, gene)
+            return self._determine_permissible_values_output_gene(gene_idx, gene)
 
         else:
             assert False  # should never be reached
 
-    def _determine_permissible_values_hidden(
+    def _determine_permissible_values_hidden_gene(
         self, gene_idx: int, gene: int, region_idx: int
     ) -> List[int]:
         if self._is_function_gene(gene_idx):
@@ -419,10 +422,10 @@ class Genome:
         permissible_values.remove(gene)
         return permissible_values
 
-    def _determine_permissible_values_output(self, gene_idx: int, gene: int) -> List[int]:
+    def _determine_permissible_values_output_gene(self, gene_idx: int, gene: int) -> List[int]:
         input_index = (
             gene_idx % self._length_per_region
-        )  # assumes that the second gene in the output is the address of the input
+        )  # assumes that the second gene in all output regions is the index of the input
         if input_index == 1:
             permissible_values = self._permissible_inputs_for_output_region()
             permissible_values.remove(gene)

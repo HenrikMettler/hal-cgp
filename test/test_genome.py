@@ -3,7 +3,6 @@ import pytest
 
 import cgp
 from cgp.genome import ID_INPUT_NODE, ID_OUTPUT_NODE, ID_NON_CODING_GENE
-from pytest import fixture
 
 
 def test_check_dna_consistency():
@@ -348,22 +347,26 @@ def test_is_gene_in_output_region(rng_seed):
 
 
 def test_mutation_rate(rng_seed, mutation_rate):
-    n_input = 1
-    n_output = 1
-    n_column = 4
-    n_row = 3
-    genome = cgp.Genome(n_input, n_output, n_column, n_row, None, (cgp.Add, cgp.Sub))
+    n_inputs = 1
+    n_outputs = 1
+    n_columns = 4
+    n_rows = 3
+    genome = cgp.Genome(n_inputs, n_outputs, n_columns, n_rows, None, (cgp.Add, cgp.Sub))
     rng = np.random.RandomState(rng_seed)
     genome.randomize(rng)
 
-    def count_n_immutable_genes(n_input, n_output, n_row):
-        counter = n_input * 3  # 3 is the arity
-        counter += n_output * 2  # 2 of 3 output genes can not be mutated
-        if n_input == 1:
-            counter += (
+    def count_n_immutable_genes(n_inputs, n_output, n_row):
+        n_immutable_genes = n_inputs * (
+            genome.primitives.max_arity + 1
+        )  # none of the input gene is mutable (+1 for function gene)
+        n_immutable_genes += (
+            n_output * genome.primitives.max_arity
+        )  # only one gene per output can be mutated
+        if n_inputs == 1:
+            n_immutable_genes += (
                 n_row * 2
             )  # input gene addresses in the first hidden layer can't be mutated in that case
-        return counter
+        return n_immutable_genes
 
     def count_mutations(prev_dna, new_dna):
         counter = 0
@@ -374,15 +377,13 @@ def test_mutation_rate(rng_seed, mutation_rate):
 
     acceptable_error_interval = 0.05  # Todo: get comment for this value from Jakob and Max
     n = 1000
-    n_immutable_genes = count_n_immutable_genes(n_input, n_output, n_row)
+    n_immutable_genes = count_n_immutable_genes(n_inputs, n_outputs, n_rows)
     n_mutations_expected = n * mutation_rate * (len(genome.dna) - n_immutable_genes)
-    print(len(genome.dna), n_immutable_genes)
     n_mutations = 0
     for _ in range(n):
-        temp_dna = genome.dna
+        dna_old = genome.dna
         genome.mutate(mutation_rate, rng)
-        current_n_mutations = count_mutations(temp_dna, genome.dna)
-        n_mutations += current_n_mutations
+        n_mutations += count_mutations(dna_old, genome.dna)
 
     assert abs(n_mutations_expected - n_mutations) < (
         n_mutations_expected * acceptable_error_interval
@@ -401,11 +402,8 @@ def test_only_silent_mutations(genome_params, rng_seed):
     assert not only_silent_mutations_1
 
 
-# Overwrite global genome_params() from conftest,
-# since tests below strongly depend on these variable values
-@fixture
-def genome_params():
-    return {
+def test_permissible_values_hidden(rng_seed):
+    genome_params = {
         "n_inputs": 2,
         "n_outputs": 1,
         "n_columns": 3,
@@ -414,30 +412,28 @@ def genome_params():
         "primitives": (cgp.Add, cgp.Sub, cgp.ConstantFloat),
     }
 
-
-def test_permissible_values_hidden(genome_params, rng_seed):
     genome = cgp.Genome(**genome_params)
 
     # test function gene
-    gene_idx = 6  # function gene of first hidden gene
+    gene_idx = 6  # function gene of first hidden region
     gene = 0  #
-    region_idx = 1000  # can be any number, since not touched for function gene
-    permissible_function_gene_values = genome._determine_permissible_values_hidden(
+    region_idx = None  # can be any number, since not touched for function gene
+    permissible_function_gene_values = genome._determine_permissible_values_hidden_gene(
         gene_idx, gene, region_idx
     )
-
-    # test input gene
-    gene_idx = 16  # first input gene in second hidden layer
-    gene = 0
-    region_idx = 5
-    permissible_hidden_input_gene_values = genome._determine_permissible_values_hidden(
-        gene_idx, gene, region_idx
-    )
-
     assert permissible_function_gene_values == [
         1,
         2,
     ]  # function idx 1,2 (cgp.Sub, cgp.ConstantFloat)
+
+    # test input gene
+    gene_idx = 16  # first input gene in second column or hidden region
+    gene = 0
+    region_idx = int(gene_idx / (genome.primitives.max_arity + 1))
+    permissible_hidden_input_gene_values = genome._determine_permissible_values_hidden_gene(
+        gene_idx, gene, region_idx
+    )
+
     assert permissible_hidden_input_gene_values == [
         1,
         2,
@@ -446,19 +442,30 @@ def test_permissible_values_hidden(genome_params, rng_seed):
     ]  # gene indices of input, 1st hidden layer
 
 
-def test_permissible_values_output(genome_params, rng_seed):
+def test_permissible_values_output(rng_seed):
+    genome_params = {
+        "n_inputs": 2,
+        "n_outputs": 1,
+        "n_columns": 3,
+        "n_rows": 3,
+        "levels_back": 2,
+        "primitives": (cgp.Add, cgp.Sub, cgp.ConstantFloat),
+    }
     genome = cgp.Genome(**genome_params)
 
-    gene_idx_0 = 33
-    gene_idx_1 = 34
-    gene_idx_2 = 35
+    gene_idx_function = 33
+    gene_idx_input0 = 34
+    gene_idx_input1 = 35
 
-    gene = 5  # possible input genes: 0-10
+    gene = 5  # set current value for input0 -> removed from output
 
-    permissible_values_0 = genome._determine_permissible_values_output(gene_idx_0, gene)
-    permissible_values_1 = genome._determine_permissible_values_output(gene_idx_1, gene)
-    permissible_values_2 = genome._determine_permissible_values_output(gene_idx_2, gene)
-
+    permissible_values_0 = genome._determine_permissible_values_output_gene(
+        gene_idx_function, gene
+    )
     assert permissible_values_0 == []
+
+    permissible_values_1 = genome._determine_permissible_values_output_gene(gene_idx_input0, gene)
     assert permissible_values_1 == [0, 1, 2, 3, 4, 6, 7, 8, 9, 10]
+
+    permissible_values_2 = genome._determine_permissible_values_output_gene(gene_idx_input1, gene)
     assert permissible_values_2 == []
