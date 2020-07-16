@@ -375,19 +375,19 @@ def test_mutation_rate(rng_seed, mutation_rate):
                 counter += 1
         return counter
 
-    acceptable_error_interval = 0.05  # Todo: get comment for this value from Jakob and Max
-    n = 1000
     n_immutable_genes = count_n_immutable_genes(n_inputs, n_outputs, n_rows)
-    n_mutations_expected = n * mutation_rate * (len(genome.dna) - n_immutable_genes)
-    n_mutations = 0
+    n_mutations_mean_expected = mutation_rate * (len(genome.dna) - n_immutable_genes)
+    n_mutations_std_expected = np.sqrt((len(genome.dna) - n_immutable_genes)*mutation_rate*(1-mutation_rate))
+
+    n = 10000
+    n_mutations = []
     for _ in range(n):
         dna_old = genome.dna
         genome.mutate(mutation_rate, rng)
-        n_mutations += count_mutations(dna_old, genome.dna)
+        n_mutations.append(count_mutations(dna_old, genome.dna))
 
-    assert abs(n_mutations_expected - n_mutations) < (
-        n_mutations_expected * acceptable_error_interval
-    )
+    assert np.mean(n_mutations) == pytest.approx(n_mutations_mean_expected, rel=0.02)
+    assert np.std(n_mutations) == pytest.approx(n_mutations_std_expected, rel=0.02)
 
 
 def test_only_silent_mutations(genome_params, rng_seed):
@@ -427,9 +427,9 @@ def test_permissible_values_hidden(rng_seed):
     ]  # function idx 1,2 (cgp.Sub, cgp.ConstantFloat)
 
     # test input gene
-    gene_idx = 16  # first input gene in second column or hidden region
+    gene_idx = 16  # first input gene in second column of hidden region
     gene = 0
-    region_idx = int(gene_idx / (genome.primitives.max_arity + 1))
+    region_idx = gene_idx // (genome.primitives.max_arity + 1)
     permissible_hidden_input_gene_values = genome._determine_permissible_values_hidden_gene(
         gene_idx, gene, region_idx
     )
@@ -457,7 +457,7 @@ def test_permissible_values_output(rng_seed):
     gene_idx_input0 = 34
     gene_idx_input1 = 35
 
-    gene = 5  # set current value for input0 -> removed from output
+    gene = 5  # set current value for input0 -> should be excluded from permissible values
 
     permissible_values_0 = genome._determine_permissible_values_output_gene(
         gene_idx_function, gene
