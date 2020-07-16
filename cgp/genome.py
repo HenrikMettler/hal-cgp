@@ -372,19 +372,19 @@ class Genome:
 
         selected_gene_indices = np.nonzero(np.random.rand(len(dna)) < mutation_rate)[0]
 
-        for (allele_idx, allele) in zip(
+        for (gene_idx, allele) in zip(
             selected_gene_indices, np.array(dna)[selected_gene_indices]
         ):
 
             silent = True
-            region_idx = allele_idx // self._length_per_region
+            region_idx = gene_idx // self._length_per_region
 
             permissible_values = self._determine_alternative_permissible_values(
-                allele_idx, allele, region_idx
+                gene_idx, allele, region_idx
             )
             if len(permissible_values) > 0:
 
-                dna[allele_idx] = rng.choice(permissible_values)
+                dna[gene_idx] = rng.choice(permissible_values)
                 silent = region_idx not in active_regions
 
             only_silent_mutations = only_silent_mutations and silent
