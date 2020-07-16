@@ -370,7 +370,11 @@ class Genome:
         dna = list(self._dna)
         only_silent_mutations = True
 
-        selected_gene_indices = np.nonzero(np.random.rand(len(dna)) < mutation_rate)[0]
+        def select_gene_indices(mutation_rate, dna):
+            selected_gene_indices = np.nonzero(np.random.rand(len(dna)) < mutation_rate)[0]
+            return selected_gene_indices
+
+        selected_gene_indices = select_gene_indices(mutation_rate, dna)
 
         for (gene_idx, allele) in zip(
             selected_gene_indices, np.array(dna)[selected_gene_indices]
