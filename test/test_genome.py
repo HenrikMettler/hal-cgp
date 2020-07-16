@@ -3,6 +3,7 @@ import pytest
 
 import cgp
 from cgp.genome import ID_INPUT_NODE, ID_OUTPUT_NODE, ID_NON_CODING_GENE
+from cgp.cartesian_graph import CartesianGraph
 
 
 def test_check_dna_consistency():
@@ -377,7 +378,9 @@ def test_mutation_rate(rng_seed, mutation_rate):
 
     n_immutable_genes = count_n_immutable_genes(n_inputs, n_outputs, n_rows)
     n_mutations_mean_expected = mutation_rate * (len(genome.dna) - n_immutable_genes)
-    n_mutations_std_expected = np.sqrt((len(genome.dna) - n_immutable_genes)*mutation_rate*(1-mutation_rate))
+    n_mutations_std_expected = np.sqrt(
+        (len(genome.dna) - n_immutable_genes) * mutation_rate * (1 - mutation_rate)
+    )
 
     n = 10000
     n_mutations = []
@@ -390,7 +393,7 @@ def test_mutation_rate(rng_seed, mutation_rate):
     assert np.std(n_mutations) == pytest.approx(n_mutations_std_expected, rel=0.02)
 
 
-def test_only_silent_mutations(genome_params, rng_seed):
+def test_only_silent_mutations(genome_params, mutation_rate, rng_seed):
     genome = cgp.Genome(**genome_params)
     rng = np.random.RandomState(rng_seed)
     genome.randomize(rng)
@@ -400,6 +403,32 @@ def test_only_silent_mutations(genome_params, rng_seed):
 
     only_silent_mutations_1 = genome.mutate(mutation_rate=1, rng=rng)
     assert not only_silent_mutations_1
+
+    graph = CartesianGraph(genome)
+    active_regions = graph.determine_active_regions()
+
+    gene_to_be_mutated_active = active_regions[-1] * (
+        genome.primitives.max_arity + 1
+    )  # function gene of the 1st active hidden gene, should always be mutable
+    gene_to_be_mutated_non_active = 4 * (
+        genome.primitives.max_arity + 1
+    )  # 4 is a non active gene in this seed
+
+    def select_gene_indices_silent(mutation_rate, dna):
+        selected_gene_indices = [gene_to_be_mutated_non_active]
+        return selected_gene_indices
+
+    genome._select_gene_indices = select_gene_indices_silent
+    only_silent_mutations_2 = genome.mutate(mutation_rate, rng)
+    assert only_silent_mutations_2
+
+    def select_gene_indices_non_silent(mutation_rate, dna):
+        selected_gene_indices = [gene_to_be_mutated_active]
+        return selected_gene_indices
+
+    genome._select_gene_indices = select_gene_indices_non_silent
+    only_silent_mutations_3 = genome.mutate(mutation_rate, rng)
+    assert not only_silent_mutations_3
 
 
 def test_permissible_values_hidden(rng_seed):

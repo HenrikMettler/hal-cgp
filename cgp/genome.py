@@ -349,6 +349,10 @@ class Genome:
         else:
             assert False  # should never be reached
 
+    def _select_gene_indices(self, mutation_rate, dna):
+        selected_gene_indices = np.nonzero(np.random.rand(len(dna)) < mutation_rate)[0]
+        return selected_gene_indices
+
     def mutate(self, mutation_rate: float, rng: np.random.RandomState):
         """Mutate the genome.
 
@@ -370,11 +374,9 @@ class Genome:
         dna = list(self._dna)
         only_silent_mutations = True
 
-        selected_gene_indices = np.nonzero(np.random.rand(len(dna)) < mutation_rate)[0]
+        selected_gene_indices = self._select_gene_indices(mutation_rate, dna)
 
-        for (gene_idx, allele) in zip(
-            selected_gene_indices, np.array(dna)[selected_gene_indices]
-        ):
+        for (gene_idx, allele) in zip(selected_gene_indices, np.array(dna)[selected_gene_indices]):
 
             silent = True
             region_idx = gene_idx // self._length_per_region
