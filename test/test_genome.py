@@ -395,7 +395,12 @@ def test_mutation_rate(rng_seed, mutation_rate):
 def test_only_silent_mutations(genome_params, mutation_rate, rng_seed):
     genome = cgp.Genome(**genome_params)
     rng = np.random.RandomState(rng_seed)
-    genome.randomize(rng)
+
+    dna_fixed = [-1, -3, -3, -1, -3, -3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 2, -3]
+    genome.dna = dna_fixed
+
+    graph = CartesianGraph(genome)
+    active_regions = graph.determine_active_regions()
 
     only_silent_mutations = genome.mutate(mutation_rate=0, rng=rng)
     assert only_silent_mutations is True
@@ -403,14 +408,11 @@ def test_only_silent_mutations(genome_params, mutation_rate, rng_seed):
     only_silent_mutations = genome.mutate(mutation_rate=1, rng=rng)
     assert not only_silent_mutations
 
-    graph = CartesianGraph(genome)
-    active_regions = graph.determine_active_regions()
-
     length_per_region = genome.primitives.max_arity + 1  # function gene + input gene addresses
     gene_to_be_mutated_active = (
         active_regions[-1] * length_per_region
     )  # function gene of the 1st active hidden gene, should always be mutable
-    gene_to_be_mutated_non_active = 4 * length_per_region  # 4 is a non active gene in this seed
+    gene_to_be_mutated_non_active = 3 * length_per_region  # 4 is a non active gene in this seed
 
     def select_gene_indices_silent(mutation_rate, dna):
         selected_gene_indices = [gene_to_be_mutated_non_active]
