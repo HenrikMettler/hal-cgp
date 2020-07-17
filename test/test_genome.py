@@ -395,6 +395,7 @@ def test_mutation_rate(rng_seed, mutation_rate):
 def test_only_silent_mutations(genome_params, mutation_rate, rng_seed):
     genome = cgp.Genome(**genome_params)
     rng = np.random.RandomState(rng_seed)
+    length_per_region = genome.primitives.max_arity + 1 # function gene + input gene addresses
 
     dna_fixed = [-1, -3, -3, -1, -3, -3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, 2, -3]
     genome.dna = dna_fixed
@@ -408,17 +409,17 @@ def test_only_silent_mutations(genome_params, mutation_rate, rng_seed):
     only_silent_mutations = genome.mutate(mutation_rate=1, rng=rng)
     assert not only_silent_mutations
 
-    length_per_region = genome.primitives.max_arity + 1  # function gene + input gene addresses
     gene_to_be_mutated_active = (
-        active_regions[-1] * length_per_region
-    )  # function gene of the 1st active hidden gene, should always be mutable
-    gene_to_be_mutated_non_active = 3 * length_per_region  # 4 is a non active gene in this seed
+        2 * length_per_region
+    )  # 2 is an active region with mutable function gene
+    gene_to_be_mutated_non_active = 3 * length_per_region  # 3 is a non active region in this seed with mutable function gene
 
     def select_gene_indices_silent(mutation_rate, dna):
         selected_gene_indices = [gene_to_be_mutated_non_active]
         return selected_gene_indices
 
     genome._select_gene_indices_for_mutation = select_gene_indices_silent
+    #genome.dna = dna_fixed
     only_silent_mutations = genome.mutate(mutation_rate, rng)
     assert only_silent_mutations is True
 
@@ -427,6 +428,7 @@ def test_only_silent_mutations(genome_params, mutation_rate, rng_seed):
         return selected_gene_indices
 
     genome._select_gene_indices_for_mutation = select_gene_indices_non_silent
+    #genome.dna = dna_fixed
     only_silent_mutations = genome.mutate(mutation_rate, rng)
     assert not only_silent_mutations
 

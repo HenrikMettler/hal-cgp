@@ -402,7 +402,8 @@ class Genome:
 
                 dna[gene_idx] = rng.choice(permissible_values)
                 silent = region_idx not in active_regions
-
+                print(region_idx, active_regions)
+                print(silent)
                 only_silent_mutations = only_silent_mutations and silent
 
         self.dna = dna
