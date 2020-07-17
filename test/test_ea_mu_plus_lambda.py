@@ -203,7 +203,7 @@ def test_create_new_offspring_and_parent_generation(population_params, genome_pa
         individual.fitness = float(individual.idx)
         return individual
 
-    population_params["mutation_rate"] = 0.99 # ensures every offspring has mutations
+    population_params["mutation_rate"] = 1.0  # ensures every offspring has mutations
 
     pop = cgp.Population(**population_params, genome_params=genome_params)
     ea = cgp.ea.MuPlusLambda(**ea_params)

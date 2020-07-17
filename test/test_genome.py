@@ -357,11 +357,10 @@ def test_mutation_rate(rng_seed, mutation_rate):
     genome.randomize(rng)
 
     def count_n_immutable_genes(n_inputs, n_output, n_row):
-        n_immutable_genes = n_inputs * (
-            genome.primitives.max_arity + 1
-        )  # none of the input gene is mutable (+1 for function gene)
-        n_immutable_genes += (
-            n_output * genome.primitives.max_arity
+        length_per_region = genome.primitives.max_arity + 1  # function gene + input gene addresses
+        n_immutable_genes = n_inputs * length_per_region  # none of the input genes are mutable
+        n_immutable_genes += n_output * (
+            length_per_region - 1
         )  # only one gene per output can be mutated
         if n_inputs == 1:
             n_immutable_genes += (
@@ -369,12 +368,12 @@ def test_mutation_rate(rng_seed, mutation_rate):
             )  # input gene addresses in the first hidden layer can't be mutated in that case
         return n_immutable_genes
 
-    def count_mutations(prev_dna, new_dna):
-        counter = 0
-        for idx in range(len(prev_dna)):
-            if prev_dna[idx] != new_dna[idx]:
-                counter += 1
-        return counter
+    def count_mutations(dna0, dna1):
+        n_differences = 0
+        for (allele0, allele1) in zip(dna0, dna1):
+            if allele0 != allele1:
+                n_differences += 1
+        return n_differences
 
     n_immutable_genes = count_n_immutable_genes(n_inputs, n_outputs, n_rows)
     n_mutations_mean_expected = mutation_rate * (len(genome.dna) - n_immutable_genes)
@@ -389,8 +388,8 @@ def test_mutation_rate(rng_seed, mutation_rate):
         genome.mutate(mutation_rate, rng)
         n_mutations.append(count_mutations(dna_old, genome.dna))
 
-    assert np.mean(n_mutations) == pytest.approx(n_mutations_mean_expected, rel=0.02)
-    assert np.std(n_mutations) == pytest.approx(n_mutations_std_expected, rel=0.02)
+    assert np.mean(n_mutations) == pytest.approx(n_mutations_mean_expected, rel=0.04)
+    assert np.std(n_mutations) == pytest.approx(n_mutations_std_expected, rel=0.04)
 
 
 def test_only_silent_mutations(genome_params, mutation_rate, rng_seed):
@@ -398,37 +397,36 @@ def test_only_silent_mutations(genome_params, mutation_rate, rng_seed):
     rng = np.random.RandomState(rng_seed)
     genome.randomize(rng)
 
-    only_silent_mutations_0 = genome.mutate(mutation_rate=0, rng=rng)
-    assert only_silent_mutations_0
+    only_silent_mutations = genome.mutate(mutation_rate=0, rng=rng)
+    assert only_silent_mutations is True
 
-    only_silent_mutations_1 = genome.mutate(mutation_rate=1, rng=rng)
-    assert not only_silent_mutations_1
+    only_silent_mutations = genome.mutate(mutation_rate=1, rng=rng)
+    assert not only_silent_mutations
 
     graph = CartesianGraph(genome)
     active_regions = graph.determine_active_regions()
 
-    gene_to_be_mutated_active = active_regions[-1] * (
-        genome.primitives.max_arity + 1
+    length_per_region = genome.primitives.max_arity + 1  # function gene + input gene addresses
+    gene_to_be_mutated_active = (
+        active_regions[-1] * length_per_region
     )  # function gene of the 1st active hidden gene, should always be mutable
-    gene_to_be_mutated_non_active = 4 * (
-        genome.primitives.max_arity + 1
-    )  # 4 is a non active gene in this seed
+    gene_to_be_mutated_non_active = 4 * length_per_region  # 4 is a non active gene in this seed
 
     def select_gene_indices_silent(mutation_rate, dna):
         selected_gene_indices = [gene_to_be_mutated_non_active]
         return selected_gene_indices
 
-    genome._select_gene_indices = select_gene_indices_silent
-    only_silent_mutations_2 = genome.mutate(mutation_rate, rng)
-    assert only_silent_mutations_2
+    genome._select_gene_indices_for_mutation = select_gene_indices_silent
+    only_silent_mutations = genome.mutate(mutation_rate, rng)
+    assert only_silent_mutations is True
 
     def select_gene_indices_non_silent(mutation_rate, dna):
         selected_gene_indices = [gene_to_be_mutated_active]
         return selected_gene_indices
 
-    genome._select_gene_indices = select_gene_indices_non_silent
-    only_silent_mutations_3 = genome.mutate(mutation_rate, rng)
-    assert not only_silent_mutations_3
+    genome._select_gene_indices_for_mutation = select_gene_indices_non_silent
+    only_silent_mutations = genome.mutate(mutation_rate, rng)
+    assert not only_silent_mutations
 
 
 def test_permissible_values_hidden(rng_seed):
@@ -445,10 +443,10 @@ def test_permissible_values_hidden(rng_seed):
 
     # test function gene
     gene_idx = 6  # function gene of first hidden region
-    gene = 0  #
+    allele = 0  #
     region_idx = None  # can be any number, since not touched for function gene
-    permissible_function_gene_values = genome._determine_permissible_values_hidden_gene(
-        gene_idx, gene, region_idx
+    permissible_function_gene_values = genome._determine_alternative_permissible_values_hidden_gene(
+        gene_idx, allele, region_idx
     )
     assert permissible_function_gene_values == [
         1,
@@ -457,10 +455,12 @@ def test_permissible_values_hidden(rng_seed):
 
     # test input gene
     gene_idx = 16  # first input gene in second column of hidden region
-    gene = 0
-    region_idx = gene_idx // (genome.primitives.max_arity + 1)
-    permissible_hidden_input_gene_values = genome._determine_permissible_values_hidden_gene(
-        gene_idx, gene, region_idx
+    allele = 0
+    region_idx = gene_idx // (
+        genome.primitives.max_arity + 1
+    )  # function gene + input gene addresses
+    permissible_hidden_input_gene_values = genome._determine_alternative_permissible_values_hidden_gene(
+        gene_idx, allele, region_idx
     )
 
     assert permissible_hidden_input_gene_values == [
@@ -486,15 +486,19 @@ def test_permissible_values_output(rng_seed):
     gene_idx_input0 = 34
     gene_idx_input1 = 35
 
-    gene = 5  # set current value for input0 -> should be excluded from permissible values
+    allele = 5  # set current value for input0 -> should be excluded from permissible values
 
-    permissible_values_0 = genome._determine_permissible_values_output_gene(
-        gene_idx_function, gene
+    permissible_values = genome._determine_alternative_permissible_values_output_gene(
+        gene_idx_function, allele
     )
-    assert permissible_values_0 == []
+    assert permissible_values == []
 
-    permissible_values_1 = genome._determine_permissible_values_output_gene(gene_idx_input0, gene)
-    assert permissible_values_1 == [0, 1, 2, 3, 4, 6, 7, 8, 9, 10]
+    permissible_values = genome._determine_alternative_permissible_values_output_gene(
+        gene_idx_input0, allele
+    )
+    assert permissible_values == [0, 1, 2, 3, 4, 6, 7, 8, 9, 10]
 
-    permissible_values_2 = genome._determine_permissible_values_output_gene(gene_idx_input1, gene)
-    assert permissible_values_2 == []
+    permissible_values = genome._determine_alternative_permissible_values_output_gene(
+        gene_idx_input1, allele
+    )
+    assert permissible_values == []

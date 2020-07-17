@@ -34,7 +34,7 @@ class Population:
         """
         self.n_parents = n_parents  # number of individuals in parent population
 
-        if not (0.0 < mutation_rate and mutation_rate < 1.0):
+        if not (0.0 < mutation_rate and mutation_rate <= 1.0):
             raise ValueError("mutation rate needs to be in (0, 1)")
         self._mutation_rate = mutation_rate  # probability of mutation per gene
 
