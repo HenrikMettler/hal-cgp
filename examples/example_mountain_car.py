@@ -37,6 +37,7 @@ import cgp
 class ConstantFloatZeroPointOne(cgp.ConstantFloat):
     _def_output = "0.1"
 
+
 class ConstantFloatTen(cgp.ConstantFloat):
     _def_output = "10.0"
 
@@ -102,7 +103,9 @@ def objective(ind, seed, n_trials_per_individual, n_total_steps):
             warnings.filterwarnings(
                 "ignore", message="invalid value encountered in double_scalars"
             )
-            cum_reward_all_episodes = inner_objective(f, seed, n_trials_per_individual, n_total_steps, render=False)
+            cum_reward_all_episodes = inner_objective(
+                f, seed, n_trials_per_individual, n_total_steps, render=False
+            )
 
         # more episodes are better, more reward is better
         n_episodes = float(len(cum_reward_all_episodes))
@@ -164,7 +167,12 @@ def evolve(seed):
         history["expr_champion"].append(pop.champion.to_sympy())
         history["fitness_champion"].append(pop.champion.fitness)
 
-    obj = functools.partial(objective, seed=seed, n_trials_per_individual=objective_params["n_trials_per_individual"], n_total_steps=objective_params["n_total_steps"])
+    obj = functools.partial(
+        objective,
+        seed=seed,
+        n_trials_per_individual=objective_params["n_trials_per_individual"],
+        n_total_steps=objective_params["n_total_steps"],
+    )
 
     cgp.evolve(pop, obj, ea, **evolve_params, print_progress=True, callback=recording_callback)
 
