@@ -234,6 +234,7 @@ def evaluate_best_expr(expr):
 
 
 def visualize_behaviour_for_evolutionary_jumps(seed, history, only_final_solution=True):
+    n_trials_per_individual = 1
     n_total_steps = 999
 
     max_fitness = -np.inf
@@ -252,7 +253,7 @@ def visualize_behaviour_for_evolutionary_jumps(seed, history, only_final_solutio
                 res = [float(expr.subs({"x_0": x[0], "x_1": x[1]}).evalf())]
                 return res
 
-            inner_objective(f, seed, n_total_steps, render=True)
+            inner_objective(f, seed, n_trials_per_individual, n_total_steps, render=True)
 
             max_fitness = fitness
 
