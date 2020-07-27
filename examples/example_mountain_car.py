@@ -272,7 +272,7 @@ if __name__ == "__main__":
 
     max_fitness = history["fitness_champion"][-1]
     best_expr = history["expr_champion"][-1][0]
-    best_expr_str = str(best_expr).replace("x_0", "x").replace("x_1", "dx/dt x")
+    best_expr_str = str(best_expr).replace("x_0", "x").replace("x_1", "dx/dt")
     print(f'solution with highest fitness: "{best_expr_str}" (fitness: {max_fitness:.05f})')
 
     plot_fitness_over_generation_index(history)
