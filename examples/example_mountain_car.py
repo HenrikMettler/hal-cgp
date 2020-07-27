@@ -245,7 +245,7 @@ def visualize_behaviour_for_evolutionary_jumps(seed, history, only_final_solutio
 
         if fitness > max_fitness:
             expr = history["expr_champion"][i][0]
-            expr_str = str(expr).replace("x_0", "x").replace("x_1", "dx/dt x")
+            expr_str = str(expr).replace("x_0", "x").replace("x_1", "dx/dt")
 
             print(f'visualizing behaviour for expression "{expr_str}" (fitness: {fitness:.05f})')
 
