@@ -56,7 +56,6 @@ def inner_objective(f, seed, n_trials_per_individual, n_total_steps, *, render):
     env = gym.make("MountainCarContinuous-v0")
 
     env.seed(seed)
-    observation = env.reset()
 
     cum_reward_all_episodes = []
     for _ in range(n_trials_per_individual):
