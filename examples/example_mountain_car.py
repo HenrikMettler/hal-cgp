@@ -35,15 +35,10 @@ import cgp
 
 
 class ConstantFloatZeroPointOne(cgp.ConstantFloat):
-    def __init__(self, idx, inputs):
-        super().__init__(idx, inputs)
-        self._output = 0.1
-
+    _def_output = "0.1"
 
 class ConstantFloatTen(cgp.ConstantFloat):
-    def __init__(self, idx, inputs):
-        super().__init__(idx, inputs)
-        self._output = 10.0
+    _def_output = "10.0"
 
 
 # %%
