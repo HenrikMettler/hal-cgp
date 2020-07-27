@@ -50,9 +50,9 @@ class ConstantFloatTen(cgp.ConstantFloat):
 # episodes.
 
 
-def inner_objective(f, seed, n_total_steps, *, render):
 
     np.random.seed(seed)
+def inner_objective(f, seed, n_trials_per_individual, n_total_steps, *, render):
 
     env = gym.make("MountainCarContinuous-v0")
 
@@ -60,7 +60,7 @@ def inner_objective(f, seed, n_total_steps, *, render):
     observation = env.reset()
 
     cum_reward_all_episodes = []
-    for _ in range(5):
+    for _ in range(n_trials_per_individual):
         observation = env.reset()
 
         cum_reward_this_episode = 0
@@ -90,7 +90,7 @@ def inner_objective(f, seed, n_total_steps, *, render):
 # is caught and the individual gets a fitness of -infinity assigned.
 
 
-def objective(ind, seed, n_total_steps):
+def objective(ind, seed, n_trials_per_individual, n_total_steps):
 
     if ind.fitness is not None:
         return ind
@@ -104,12 +104,12 @@ def objective(ind, seed, n_total_steps):
             warnings.filterwarnings(
                 "ignore", message="invalid value encountered in double_scalars"
             )
-            cum_reward_all_episodes = inner_objective(f, seed, n_total_steps, render=False)
+            cum_reward_all_episodes = inner_objective(f, seed, n_trials_per_individual, n_total_steps, render=False)
 
         # more episodes are better, more reward is better
         n_episodes = float(len(cum_reward_all_episodes))
         mean_cum_reward = np.mean(cum_reward_all_episodes)
-        ind.fitness = n_episodes + 1.0 * mean_cum_reward
+        ind.fitness = n_episodes / n_trials_per_individual + mean_cum_reward
 
     except ZeroDivisionError:
         ind.fitness = -np.inf
@@ -129,7 +129,7 @@ def objective(ind, seed, n_total_steps):
 
 def evolve(seed):
 
-    objective_params = {"n_total_steps": 2000}
+    objective_params = {"n_trials_per_individual": 5, "n_total_steps": 2000}
 
     population_params = {"n_parents": 1, "mutation_rate": 0.04, "seed": seed}
 
@@ -166,7 +166,7 @@ def evolve(seed):
         history["expr_champion"].append(pop.champion.to_sympy())
         history["fitness_champion"].append(pop.champion.fitness)
 
-    obj = functools.partial(objective, seed=seed, n_total_steps=objective_params["n_total_steps"])
+    obj = functools.partial(objective, seed=seed, n_trials_per_individual=objective_params["n_trials_per_individual"], n_total_steps=objective_params["n_total_steps"])
 
     cgp.evolve(pop, obj, ea, **evolve_params, print_progress=True, callback=recording_callback)
 
