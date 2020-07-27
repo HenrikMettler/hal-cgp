@@ -60,20 +60,23 @@ def inner_objective(f, seed, n_total_steps, *, render):
     observation = env.reset()
 
     cum_reward_all_episodes = []
-    cum_reward_this_episode = 0
-    for _ in range(n_total_steps):
+    for _ in range(5):
+        observation = env.reset()
 
-        if render:
-            env.render()
+        cum_reward_this_episode = 0
+        for _ in range(n_total_steps):
 
-        continuous_action = f(observation)
-        observation, reward, done, _ = env.step(continuous_action)
-        cum_reward_this_episode += reward
+            if render:
+                env.render()
 
-        if done:
-            cum_reward_all_episodes.append(cum_reward_this_episode)
-            cum_reward_this_episode = 0
-            observation = env.reset()
+            continuous_action = f(observation)
+            observation, reward, done, _ = env.step(continuous_action)
+            cum_reward_this_episode += reward
+
+            if done:
+                cum_reward_all_episodes.append(cum_reward_this_episode)
+                cum_reward_this_episode = 0
+                observation = env.reset()
 
     env.close()
 
@@ -197,8 +200,8 @@ def evaluate_best_expr(expr):
 
     env = gym.make("MountainCarContinuous-v0")
 
-    observation = env.reset()
     env.seed(seed)
+    observation = env.reset()
 
     def f(x):
         res = [float(expr.subs({"x_0": x[0], "x_1": x[1]}).evalf())]
