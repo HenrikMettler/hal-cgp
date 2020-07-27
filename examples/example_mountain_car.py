@@ -50,8 +50,6 @@ class ConstantFloatTen(cgp.ConstantFloat):
 # episodes.
 
 
-
-    np.random.seed(seed)
 def inner_objective(f, seed, n_trials_per_individual, n_total_steps, *, render):
 
     env = gym.make("MountainCarContinuous-v0")
@@ -195,8 +193,6 @@ def plot_fitness_over_generation_index(history):
 
 
 def evaluate_best_expr(expr):
-
-    np.random.seed(seed)
 
     env = gym.make("MountainCarContinuous-v0")
 
