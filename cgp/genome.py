@@ -307,6 +307,9 @@ class Genome:
 
             old_node_idx = rng.choice(list(addable_nodes))
             dna = self._copy_dna_segment(dna, old_node_idx=old_node_idx, new_node_idx=new_node_idx)
+            old_to_new_parameter_names_to_values.update(
+                self._convert_parameter_names(old_node_idx, new_node_idx)
+            )
 
             old_to_new_parameter_names_to_values.update(
                 self._convert_parameter_names(old_node_idx, new_node_idx)
