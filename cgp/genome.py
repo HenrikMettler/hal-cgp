@@ -325,8 +325,9 @@ class Genome:
 
         self.dna = dna
 
-    def _convert_parameter_names(self, old_node_idx:int, new_node_idx: int)\
-            -> Dict[Tuple[str, str], float]:
+    def _convert_parameter_names(
+        self, old_node_idx: int, new_node_idx: int
+    ) -> Dict[Tuple[str, str], float]:
         d: Dict[Tuple[str, str], float] = {}
         for old_parameter_name in self._parameter_names_to_values:
             g = re.findall(f"<([a-z]+){old_node_idx}>", old_parameter_name)
@@ -334,12 +335,12 @@ class Genome:
                 assert len(g) == 1
                 new_parameter_name: str = "<" + g[0] + str(new_node_idx) + ">"
                 d[(old_parameter_name, new_parameter_name)] = self._parameter_names_to_values[
-                        old_parameter_name
-            ]
+                    old_parameter_name
+                ]
         return d
 
     def _update_parameters_names_to_values(
-            self, old_to_new_parameter_names_to_values: Dict[Tuple[str, str], float]
+        self, old_to_new_parameter_names_to_values: Dict[Tuple[str, str], float]
     ) -> None:
         # first we delete all old parameter names
         for old_parameter_name, _ in old_to_new_parameter_names_to_values:
