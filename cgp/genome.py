@@ -327,6 +327,8 @@ class Genome:
 
         self.dna = dna
 
+        return old_to_new_parameter_names_to_values
+
     def _convert_parameter_names(
         self, old_node_idx: int, new_node_idx: int
     ) -> Dict[Tuple[str, str], float]:

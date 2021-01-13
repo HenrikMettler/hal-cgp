@@ -129,4 +129,5 @@ class Population:
         None
         """
         for parent in self.parents:
-            parent.reorder_genome(self.rng)
+            old_to_new_parameter_names_to_values=parent.reorder_genome(self.rng)
+        return old_to_new_parameter_names_to_values

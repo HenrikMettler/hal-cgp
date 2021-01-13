@@ -126,7 +126,7 @@ class MuPlusLambda:
         """
 
         if self.reorder_genome:
-            pop.reorder_genome()
+            old_to_new_parameter_names_to_values=pop.reorder_genome()
 
         offsprings = self._create_new_offspring_generation(pop)
 
@@ -162,7 +162,7 @@ class MuPlusLambda:
                 len(combined_copy) if self.k_local_search is None else self.k_local_search
             )
             for idx in range(k_local_search):
-                self.local_search(combined_copy[idx])
+                self.local_search(combined_copy[idx], old_to_new_parameter_names_to_values)
 
             combined_copy = self._compute_fitness(combined_copy, objective)
 

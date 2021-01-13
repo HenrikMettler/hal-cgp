@@ -80,7 +80,7 @@ class EvolutionStrategies:
 
         self.sigma: Dict[int, np.ndarray[float]] = {}
 
-    def __call__(self, ind: "IndividualBase") -> None:
+    def __call__(self, ind: "IndividualBase", old_to_new_parameter_names_to_values) -> None:
 
         rng = np.random.RandomState(self.seed)
 

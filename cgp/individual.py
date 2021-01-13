@@ -129,7 +129,8 @@ class IndividualBase:
 
     @staticmethod
     def _reorder_genome(genome: Genome, rng: np.random.RandomState) -> None:
-        genome.reorder(rng)
+        old_to_new_parameter_names_to_values = genome.reorder(rng)
+        return old_to_new_parameter_names_to_values
 
     @staticmethod
     def _to_func(genome: Genome) -> Callable[[List[float]], List[float]]:
@@ -214,7 +215,8 @@ class IndividualSingleGenome(IndividualBase):
         self._randomize_genome(self.genome, rng)
 
     def reorder_genome(self, rng: np.random.RandomState) -> None:
-        self._reorder_genome(self.genome, rng)
+        old_to_new_parameter_names_to_values=self._reorder_genome(self.genome, rng)
+        return old_to_new_parameter_names_to_values
 
     def to_func(self) -> Callable[[List[float]], List[float]]:
         return self._to_func(self.genome)

@@ -87,18 +87,19 @@ population_params = {"n_parents": 1, "seed": 818821}
 genome_params = {
     "n_inputs": 1,
     "n_outputs": 1,
-    "n_columns": 36,
+    "n_columns": 2,
     "n_rows": 1,
-    "levels_back": None,
-    "primitives": (cgp.Add, cgp.Sub, cgp.Mul, cgp.Parameter),
+    "levels_back": 2,
+    "primitives": (cgp.Parameter,),
 }
 
 ea_params = {
     "n_offsprings": 4,
-    "mutation_rate": 0.05,
+    "mutation_rate": 0.05, # avoid output mutation to reduce confusion
     "tournament_size": 1,
-    "n_processes": 1,
     "k_local_search": 2,
+    "n_processes": 1,
+    "reorder_genome": True,
 }
 
 evolve_params = {"max_generations": int(args["--max-generations"]), "min_fitness": 0.0}
