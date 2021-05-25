@@ -21,8 +21,7 @@ ID_NON_CODING_GENE: int = -3
 
 
 class Genome:
-    """Genome class for  individuals.
-    """
+    """Genome class for  individuals."""
 
     def __init__(
         self,
@@ -270,6 +269,57 @@ class Genome:
         # accept generated dna if it is valid
         self.dna = dna
 
+    def slice_dna(self, dna_insert: List[int], output_node_idx: int = 0):
+        """Slice parts of the dna.
+
+        Replaces the first internal (hidden) nodes with user defined insert.
+        Sets a definable output node to read from the last node of the insert.
+
+        Parameters
+        ----------
+        dna_insert: List[int]
+            dna segment to be inserted at the first internal (hidden) nodes.
+        output_node_idx: int
+            idx of the output node which will read the last node of the insert.
+            defaults to 0.
+
+        Returns
+        ----------
+        None
+        """
+
+        # check that dna is initialized
+        if len(self.dna) == 0:
+            raise AssertionError(
+                "Can only slice genome with initialized dna, " "use genome.randomize first"
+            )
+        # check that dna insert is a multiple of region length
+        if len(dna_insert) % (self._length_per_region) != 0:
+            raise AssertionError("Dna insert is not of proper length")
+
+        # check that output_node_idx is valid
+        if output_node_idx > self._n_outputs + 1:
+            raise ValueError("Output node idx too high, choose wrt n_outputs")
+
+        n_inserts = len(dna_insert)
+        n_insert_nodes = int(n_inserts / (self._length_per_region))
+
+        dna = self._dna.copy()
+
+        # replace the first internal node(s) with the dna_insert
+        start_idx = self._n_inputs * self._length_per_region
+        end_idx = start_idx + n_inserts
+        dna[start_idx:end_idx] = dna_insert
+
+        # replace the (selected) output node with the idx of the latest node in the insert
+        idx_of_insert = n_insert_nodes + self._n_inputs - 1  #
+        idx_of_output_for_insertion = (
+            self._n_inputs + self._n_hidden + output_node_idx
+        ) * self._length_per_region + 1
+        dna[idx_of_output_for_insertion] = idx_of_insert
+
+        self.dna = dna
+
     def reorder(self, rng: np.random.RandomState) -> None:
         """Reorder the genome
 
@@ -394,10 +444,12 @@ class Genome:
                 dna[gene_idx] = gene_value
 
     def _get_addable_nodes(
-        self, node_dependencies: Dict[int, Set[int]], used_node_indices: List[int] = [],
+        self,
+        node_dependencies: Dict[int, Set[int]],
+        used_node_indices: List[int] = [],
     ) -> Set[int]:
-        """ Get the set of addable nodes,
-         nodes which have no dependencies and were not already used.
+        """Get the set of addable nodes,
+        nodes which have no dependencies and were not already used.
         """
         addable_nodes = set(
             idx for idx, dependencies in node_dependencies.items() if len(dependencies) == 0
@@ -413,7 +465,7 @@ class Genome:
         ]
 
     def _determine_node_dependencies(self) -> Dict[int, Set[int]]:
-        """ Determines the set of node indices on which each node depends.
+        """Determines the set of node indices on which each node depends.
             Unused address genes are ignored.
 
         Returns
