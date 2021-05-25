@@ -299,7 +299,7 @@ class Genome:
 
         # check that output_node_idx is valid
         if output_node_idx > self._n_outputs + 1:
-            raise ValueError("Output node idx too high, choose wrt n_outputs")
+            raise ValueError("Output node idx too high, choose wrt to n_outputs")
 
         n_inserts = len(dna_insert)
         n_insert_nodes = int(n_inserts / (self._length_per_region))
