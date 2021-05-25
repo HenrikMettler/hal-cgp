@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 import pytest
+import sympy
 
 import cgp
 from cgp.cartesian_graph import CartesianGraph
@@ -13,7 +14,11 @@ def test_check_dna_consistency():
 
     primitives = (cgp.Add,)
     genome = cgp.Genome(
-        params["n_inputs"], params["n_outputs"], params["n_columns"], params["n_rows"], primitives,
+        params["n_inputs"],
+        params["n_outputs"],
+        params["n_columns"],
+        params["n_rows"],
+        primitives,
     )
     genome.dna = [
         ID_INPUT_NODE,
@@ -210,7 +215,11 @@ def test_region_iterators():
 
     primitives = (cgp.Add,)
     genome = cgp.Genome(
-        params["n_inputs"], params["n_outputs"], params["n_columns"], params["n_rows"], primitives,
+        params["n_inputs"],
+        params["n_outputs"],
+        params["n_columns"],
+        params["n_rows"],
+        primitives,
     )
     genome.dna = [
         ID_INPUT_NODE,
@@ -766,3 +775,16 @@ def test_ncolumns_zero(rng):
 
     CartesianGraph(genome).to_func()
     CartesianGraph(genome).to_numpy()
+
+
+def test_slice_dna(genome_params, rng):
+
+    genome = cgp.Genome(**genome_params)
+    genome.randomize(rng)
+
+    dna_insert = [0, 0, 1]
+    genome.slice_dna(dna_insert)
+
+    x_0 = sympy.symbols("x_0")
+    x_1 = sympy.symbols("x_1")
+    assert CartesianGraph(genome).to_sympy() == x_0 + x_1
