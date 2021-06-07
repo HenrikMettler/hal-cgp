@@ -1,3 +1,4 @@
+import time
 import warnings
 from typing import Callable, Optional
 
@@ -12,6 +13,7 @@ def evolve(
     pop: Population,
     objective: Callable[[IndividualBase], IndividualBase],
     ea: MuPlusLambda,
+    max_time:float = np.inf,
     min_fitness: float = np.inf,
     termination_fitness: float = np.inf,
     max_generations: int = np.iinfo(np.int64).max,
@@ -74,11 +76,12 @@ def evolve(
         )
         termination_fitness = min_fitness
 
-    if max_generations == np.iinfo(np.int64).max and max_objective_calls == np.iinfo(np.int64).max:
-        raise ValueError(
-            "Either max_generations or max_objective_calls must be set to a"
-            " value smaller than the largest representable integer."
-        )
+    #if max_generations == np.iinfo(np.int64).max
+    # and max_objective_calls == np.iinfo(np.int64).max:
+    #    raise ValueError(
+    #        "Either max_generations or max_objective_calls must be set to a"
+    #        " value smaller than the largest representable integer."
+    #    )
 
     ea.initialize_fitness_parents(pop, objective)
     if callback is not None:
@@ -87,7 +90,9 @@ def evolve(
     # perform evolution
     max_fitness = np.finfo(float).min
     # Main loop: -1 offset since the last loop iteration will still increase generation by one
-    while pop.generation < max_generations - 1 and ea.n_objective_calls < max_objective_calls:
+    start_time = time.time()
+    current_time = time.time()
+    while current_time - start_time < max_time:
 
         pop = ea.step(pop, objective)
 
@@ -120,6 +125,8 @@ def evolve(
 
         if pop.champion.fitness + 1e-10 >= termination_fitness:
             break
+
+        current_time = time.time()
 
     if print_progress:
         print()
