@@ -106,9 +106,7 @@ class MuPlusLambda:
         pop._parents = self._compute_fitness(pop.parents, objective, use_hurdles=False)
 
     def step(
-        self,
-        pop: Population,
-        objective: Callable[[IndividualBase], IndividualBase],
+        self, pop: Population, objective: Callable[[IndividualBase], IndividualBase],
     ) -> Population:
         """Perform one step in the evolution.
 

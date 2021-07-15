@@ -14,11 +14,7 @@ def test_check_dna_consistency():
 
     primitives = (cgp.Add,)
     genome = cgp.Genome(
-        params["n_inputs"],
-        params["n_outputs"],
-        params["n_columns"],
-        params["n_rows"],
-        primitives,
+        params["n_inputs"], params["n_outputs"], params["n_columns"], params["n_rows"], primitives,
     )
     genome.dna = [
         ID_INPUT_NODE,
@@ -215,11 +211,7 @@ def test_region_iterators():
 
     primitives = (cgp.Add,)
     genome = cgp.Genome(
-        params["n_inputs"],
-        params["n_outputs"],
-        params["n_columns"],
-        params["n_rows"],
-        primitives,
+        params["n_inputs"], params["n_outputs"], params["n_columns"], params["n_rows"], primitives,
     )
     genome.dna = [
         ID_INPUT_NODE,

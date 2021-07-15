@@ -455,9 +455,7 @@ class Genome:
                 dna[gene_idx] = gene_value
 
     def _get_addable_nodes(
-        self,
-        node_dependencies: Dict[int, Set[int]],
-        used_node_indices: List[int] = [],
+        self, node_dependencies: Dict[int, Set[int]], used_node_indices: List[int] = [],
     ) -> Set[int]:
         """Get the set of addable nodes,
         nodes which have no dependencies and were not already used.

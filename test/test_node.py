@@ -74,11 +74,7 @@ def test_add():
 
     primitives = (cgp.Add,)
     genome = cgp.Genome(
-        params["n_inputs"],
-        params["n_outputs"],
-        params["n_columns"],
-        params["n_rows"],
-        primitives,
+        params["n_inputs"], params["n_outputs"], params["n_columns"], params["n_rows"], primitives,
     )
     # f(x) = x[0] + x[1]
     genome.dna = [
@@ -107,11 +103,7 @@ def test_sub():
 
     primitives = (cgp.Sub,)
     genome = cgp.Genome(
-        params["n_inputs"],
-        params["n_outputs"],
-        params["n_columns"],
-        params["n_rows"],
-        primitives,
+        params["n_inputs"], params["n_outputs"], params["n_columns"], params["n_rows"], primitives,
     )
     # f(x) = x[0] - x[1]
     genome.dna = [
@@ -140,11 +132,7 @@ def test_mul():
 
     primitives = (cgp.Mul,)
     genome = cgp.Genome(
-        params["n_inputs"],
-        params["n_outputs"],
-        params["n_columns"],
-        params["n_rows"],
-        primitives,
+        params["n_inputs"], params["n_outputs"], params["n_columns"], params["n_rows"], primitives,
     )
     # f(x) = x[0] * x[1]
     genome.dna = [
@@ -173,11 +161,7 @@ def test_div():
 
     primitives = (cgp.Div,)
     genome = cgp.Genome(
-        params["n_inputs"],
-        params["n_outputs"],
-        params["n_columns"],
-        params["n_rows"],
-        primitives,
+        params["n_inputs"], params["n_outputs"], params["n_columns"], params["n_rows"], primitives,
     )
     # f(x) = x[0] / x[1]
     genome.dna = [
@@ -206,11 +190,7 @@ def test_pow():
 
     primitives = (cgp.Pow,)
     genome = cgp.Genome(
-        params["n_inputs"],
-        params["n_outputs"],
-        params["n_columns"],
-        params["n_rows"],
-        primitives,
+        params["n_inputs"], params["n_outputs"], params["n_columns"], params["n_rows"], primitives,
     )
     # f(x) = x[0] ** x[1]
     genome.dna = [
@@ -240,11 +220,7 @@ def test_constant_float():
     primitives = (cgp.ConstantFloat,)
     # f(x) = c
     genome = cgp.Genome(
-        params["n_inputs"],
-        params["n_outputs"],
-        params["n_columns"],
-        params["n_rows"],
-        primitives,
+        params["n_inputs"], params["n_outputs"], params["n_columns"], params["n_rows"], primitives,
     )
     genome.dna = [
         ID_INPUT_NODE,

@@ -85,13 +85,7 @@ genome_params = {
     "n_columns": 20,
     "n_rows": 1,
     "levels_back": None,
-    "primitives": (
-        cgp.IfElse,
-        cgp.Mul,
-        cgp.Add,
-        cgp.Sub,
-        cgp.ConstantFloat,
-    ),
+    "primitives": (cgp.IfElse, cgp.Mul, cgp.Add, cgp.Sub, cgp.ConstantFloat,),
 }
 
 ea_params = {"n_offsprings": 4, "mutation_rate": 0.03, "n_processes": 2}
