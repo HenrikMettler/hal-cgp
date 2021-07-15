@@ -53,8 +53,7 @@ class Population:
 
     @property
     def champion(self) -> IndividualBase:
-        """Return parent with the highest fitness.
-        """
+        """Return parent with the highest fitness."""
 
         def key(ind: IndividualBase) -> float:
             return ind.fitness
@@ -122,7 +121,7 @@ class Population:
         return [ind.fitness for ind in self._parents]
 
     def reorder_genome(self) -> None:
-        """ Reorders the genome for all parents in the population
+        """Reorders the genome for all parents in the population
 
         Returns
         ---------

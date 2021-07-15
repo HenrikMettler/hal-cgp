@@ -168,7 +168,10 @@ class EvolutionStrategies:
         return self.objective(new_ind)
 
     def _determine_utility(
-        self, s: "np.ndarray[float]", z: "np.ndarray[float]", fitness: "np.ndarray[float]",
+        self,
+        s: "np.ndarray[float]",
+        z: "np.ndarray[float]",
+        fitness: "np.ndarray[float]",
     ) -> Tuple["np.ndarray[float]", "np.ndarray[float]", "np.ndarray[float]"]:
         if self.fitness_shaping:
             order, utility = self._utility_function(fitness)

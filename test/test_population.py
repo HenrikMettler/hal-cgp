@@ -25,8 +25,7 @@ def test_fitness_parents(population_params, genome_params):
 
 
 def test_pop_uses_own_rng(population_params, genome_params, rng_seed):
-    """Test independence of Population on global numpy rng.
-    """
+    """Test independence of Population on global numpy rng."""
 
     pop = cgp.Population(**population_params, genome_params=genome_params)
 

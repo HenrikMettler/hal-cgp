@@ -8,9 +8,7 @@ from .node import Node
 
 @dataclass(frozen=True)
 class Primitives:
-    """Convenience class to manage primitives, i.e., Node classes.
-
-    """
+    """Convenience class to manage primitives, i.e., Node classes."""
 
     _primitives: Tuple[Type[Node], ...]
     _max_arity: int = field(init=False)

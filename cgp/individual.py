@@ -23,14 +23,12 @@ except ModuleNotFoundError:
 
 
 class IndividualBase:
-    """Base class for all individuals.
-    """
+    """Base class for all individuals."""
 
     __base_attrs__: Set[str]
 
     def __init__(self) -> None:
-        """Init function.
-        """
+        """Init function."""
         self._fitness: List[Optional[float]] = [None]
         self._objective_idx: int = 0
 
@@ -183,8 +181,7 @@ class IndividualBase:
 
 
 class IndividualSingleGenome(IndividualBase):
-    """An individual representing a particular computational graph.
-    """
+    """An individual representing a particular computational graph."""
 
     def __init__(self, genome: Genome) -> None:
         """Init function.
@@ -257,8 +254,7 @@ class IndividualSingleGenome(IndividualBase):
 
 
 class IndividualMultiGenome(IndividualBase):
-    """An individual with multiple genomes each representing a particular computational graph.
-    """
+    """An individual with multiple genomes each representing a particular computational graph."""
 
     def __init__(self, genome: List[Genome]) -> None:
         """Init function.

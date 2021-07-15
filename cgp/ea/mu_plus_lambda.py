@@ -31,36 +31,36 @@ class MuPlusLambda:
     ):
         """Init function
 
-        Parameters
-        ----------
-        n_offsprings : int
-            Number of offspring in each iteration.
-        mutation_rate : float
-            Probability of a gene to be mutated, between 0 (excluded) and 1 (included).
-        tournament_size : int, optional
-            Tournament size in each iteration. Defaults to the number of parents in the population
-        n_processes : int, optional
-            Number of parallel processes to be used. If greater than 1,
-            parallel evaluation of the objective is supported. Defaults to 1.
-        local_search : Callable[[Individua], None], optional
-            Called before each fitness evaluation with a joint list of
-            offsprings and parents to optimize numeric leaf values of
-            the graph. Defaults to identity function.
-        k_local_search : int
-            Number of individuals in the whole population (parents +
-            offsprings) to apply local search to.
-       reorder_genome : bool, optional
-            Whether genome reordering should be applied.
-            Reorder shuffles the genotype of an individual without changing its phenotype,
-            thereby contributing to neutral drift through the genotypic search space.
-            If True, reorder is applied to each parents genome at every generation
-            before creating offsprings.
-            Defaults to True.
-        hurdle_percentile : List[float], optional
-            Specifies which percentile of individuals passes the
-            respective hurdle, i.e., is evaluated on the next
-            objective when providing a list of objectives to be
-            evaluated sequentially.
+         Parameters
+         ----------
+         n_offsprings : int
+             Number of offspring in each iteration.
+         mutation_rate : float
+             Probability of a gene to be mutated, between 0 (excluded) and 1 (included).
+         tournament_size : int, optional
+             Tournament size in each iteration. Defaults to the number of parents in the population
+         n_processes : int, optional
+             Number of parallel processes to be used. If greater than 1,
+             parallel evaluation of the objective is supported. Defaults to 1.
+         local_search : Callable[[Individua], None], optional
+             Called before each fitness evaluation with a joint list of
+             offsprings and parents to optimize numeric leaf values of
+             the graph. Defaults to identity function.
+         k_local_search : int
+             Number of individuals in the whole population (parents +
+             offsprings) to apply local search to.
+        reorder_genome : bool, optional
+             Whether genome reordering should be applied.
+             Reorder shuffles the genotype of an individual without changing its phenotype,
+             thereby contributing to neutral drift through the genotypic search space.
+             If True, reorder is applied to each parents genome at every generation
+             before creating offsprings.
+             Defaults to True.
+         hurdle_percentile : List[float], optional
+             Specifies which percentile of individuals passes the
+             respective hurdle, i.e., is evaluated on the next
+             objective when providing a list of objectives to be
+             evaluated sequentially.
         """
         self.n_offsprings = n_offsprings
 
@@ -106,7 +106,9 @@ class MuPlusLambda:
         pop._parents = self._compute_fitness(pop.parents, objective, use_hurdles=False)
 
     def step(
-        self, pop: Population, objective: Callable[[IndividualBase], IndividualBase],
+        self,
+        pop: Population,
+        objective: Callable[[IndividualBase], IndividualBase],
     ) -> Population:
         """Perform one step in the evolution.
 
@@ -294,7 +296,7 @@ class MuPlusLambda:
 
     def update_n_objective_calls(self, combined: List[IndividualBase]) -> None:
         """Increase n_objective_calls by the number of individuals with fitness=None,
-         i.e., for which the objective function will be evaluated.
+        i.e., for which the objective function will be evaluated.
         """
         for individual in combined:
             if individual.fitness_is_None():

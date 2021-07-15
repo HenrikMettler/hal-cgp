@@ -7,8 +7,7 @@ if TYPE_CHECKING:
 
 
 class InputNode(Node):
-    """An input node of the computational graph.
-    """
+    """An input node of the computational graph."""
 
     _arity = 0
 
@@ -32,8 +31,7 @@ class InputNode(Node):
 
 
 class OutputNode(Node):
-    """An output node of the computational graph.
-    """
+    """An output node of the computational graph."""
 
     _arity = 1
 

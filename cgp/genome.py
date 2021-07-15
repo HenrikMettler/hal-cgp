@@ -269,20 +269,24 @@ class Genome:
         # accept generated dna if it is valid
         self.dna = dna
 
-    def slice_dna(self, dna_insert: List[int], output_node_idx: int = 0):
-        """Slice parts of the dna.
+    def splice_dna(
+        self, dna_insert: List[int], internal_start_node: int = 0, output_node_idx: int = 0
+    ):
+        """Splice parts of the dna.
 
-        Replaces the first internal (hidden) nodes with user defined insert.
+        Replaces internal (hidden) nodes with user defined insert.
         Sets a definable output node to read from the last node of the insert.
 
         Parameters
         ----------
         dna_insert: List[int]
             dna segment to be inserted at the first internal (hidden) nodes.
+        internal_start_node: int
+            idx of the internal node, where the insert starts.
+            Defaults to 0.
         output_node_idx: int
-            idx of the output node which will read the last node of the insert.
-            defaults to 0.
-
+            If defined, idx of the output node which will read the last node of the insert.
+            Defaults to 0.
         Returns
         ----------
         None
@@ -291,23 +295,30 @@ class Genome:
         # check that dna is initialized
         if len(self.dna) == 0:
             raise AssertionError(
-                "Can only slice genome with initialized dna, " "use genome.randomize first"
+                "Can only splice genome with initialized dna, " "use genome.randomize first"
             )
         # check that dna insert is a multiple of region length
         if len(dna_insert) % (self._length_per_region) != 0:
             raise AssertionError("Dna insert is not of proper length")
 
         # check that output_node_idx is valid
-        if output_node_idx > self._n_outputs + 1:
+        if output_node_idx > self._n_outputs - 1:
             raise ValueError("Output node idx too high, choose wrt to n_outputs")
 
         n_inserts = len(dna_insert)
         n_insert_nodes = int(n_inserts / (self._length_per_region))
 
+        # check that insert placing is valid wrt. the number of internal nodes
+        if internal_start_node + n_insert_nodes >= self._n_hidden:
+            raise ValueError(
+                "Insert is too long to be placed at this location. "
+                "Choose smaller internal_start_node or idx"
+            )
+
         dna = self._dna.copy()
 
         # replace the first internal node(s) with the dna_insert
-        start_idx = self._n_inputs * self._length_per_region
+        start_idx = (self._n_inputs + internal_start_node) * self._length_per_region
         end_idx = start_idx + n_inserts
         dna[start_idx:end_idx] = dna_insert
 
@@ -408,7 +419,7 @@ class Genome:
             self._parameter_names_to_values[new_parameter_name] = v
 
     def _copy_dna_segment(self, dna: List[int], old_node_idx: int, new_node_idx: int) -> List[int]:
-        """ Copy a nodes dna segment from its old node location to a new location. """
+        """Copy a nodes dna segment from its old node location to a new location."""
 
         dna[
             new_node_idx * self._length_per_region : (new_node_idx + 1) * self._length_per_region

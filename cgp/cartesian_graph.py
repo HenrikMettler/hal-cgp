@@ -63,13 +63,11 @@ class CartesianGraph:
         return "CartesianGraph(" + str(self._nodes) + ")"
 
     def print_active_nodes(self) -> str:
-        """Print a representation of all active nodes in the graph.
-        """
+        """Print a representation of all active nodes in the graph."""
         return "CartesianGraph(" + str([node for node in self._nodes if node._active]) + ")"
 
     def pretty_str(self) -> str:
-        """Print a pretty representation of the Cartesian graph.
-        """
+        """Print a pretty representation of the Cartesian graph."""
         n_characters = 24
 
         def pretty_node_str(node: Node) -> str:

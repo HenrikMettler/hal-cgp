@@ -28,8 +28,7 @@ def register(cls: Type["Node"]) -> None:
 
 
 class Node:
-    """Base class for input/output and hidden nodes.
-    """
+    """Base class for input/output and hidden nodes."""
 
     _arity: int
     _active: bool = False
@@ -128,28 +127,23 @@ class Node:
         return self._output_str
 
     def activate(self) -> None:
-        """Set node to active.
-        """
+        """Set node to active."""
         self._active = True
 
     def format_output_str(self, graph: "CartesianGraph") -> None:
-        """Format output string of the node.
-        """
+        """Format output string of the node."""
         raise NotImplementedError()
 
     def format_output_str_numpy(self, graph):
-        """Format output string for NumPy representation.
-        """
+        """Format output string for NumPy representation."""
         raise NotImplementedError()
 
     def format_output_str_torch(self, graph):
-        """Format output string for PyTorch representation.
-        """
+        """Format output string for PyTorch representation."""
         raise NotImplementedError()
 
     def format_output_str_sympy(self, graph):
-        """Format output string for SymPy representation.
-        """
+        """Format output string for SymPy representation."""
         raise NotImplementedError()
 
 

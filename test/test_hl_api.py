@@ -58,8 +58,7 @@ def _test_population(population_params, genome_params, ea_params):
 
 
 def test_parallel_population(population_params, genome_params, ea_params):
-    """Test consistent evolution independent of the number of processes.
-    """
+    """Test consistent evolution independent of the number of processes."""
 
     fitness_per_n_processes = []
     for n_processes in [1, 2, 4]:
@@ -73,8 +72,7 @@ def test_parallel_population(population_params, genome_params, ea_params):
 
 
 def test_evolve_two_expressions(population_params, ea_params):
-    """Test evolution of multiple expressions simultaneously.
-    """
+    """Test evolution of multiple expressions simultaneously."""
 
     def _objective(individual):
 
